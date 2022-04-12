@@ -48,7 +48,10 @@ def fill_data_table(line, data_table):
             'request_time': str(time_delta)[:-3]
         })
     else:
-        data_table[request_id] = {'sending_time': log_time}
+        data_table[request_id] = {'sending_time': log_time,
+                                  'reply_time': None,
+                                  'request_time': None
+                                  }
 
 
 def create_plot(data_table, entry):
@@ -57,6 +60,9 @@ def create_plot(data_table, entry):
 
     for value in data_table.values():
         try:
+            if value['request_time'] is None:
+                print('Request sent at {} didn\'t receive a correct response!'.format(value['sending_time']))
+                continue
             x_time = datetime.strptime(value['sending_time'], format)
             y_time = datetime.strptime(value['request_time'], '%H:%M:%S.%f')
             x_axis.append(x_time)
@@ -75,6 +81,8 @@ def create_plot(data_table, entry):
 
     file_name = entry.name[7:21]
     plt.title('Время запроса/время дня {}'.format(file_name))
+    plt.xlabel('Дата-время dd-MM HH')
+    plt.ylabel('Время HH:mm:ss')
     plt.savefig("date-request_plot_{}.png".format(file_name))
 
 
