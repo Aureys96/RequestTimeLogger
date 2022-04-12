@@ -51,13 +51,18 @@ def fill_data_table(line, data_table):
         data_table[request_id] = {'sending_time': log_time}
 
 
-def create_plot(data_table):
+def create_plot(data_table, entry):
     x_axis = []
     y_axis = []
 
     for value in data_table.values():
-        x_axis.append(datetime.strptime(value['sending_time'], format))
-        y_axis.append(datetime.strptime(value['request_time'], '%H:%M:%S.%f'))
+        try:
+            x_time = datetime.strptime(value['sending_time'], format)
+            y_time = datetime.strptime(value['request_time'], '%H:%M:%S.%f')
+            x_axis.append(x_time)
+            y_axis.append(y_time)
+        except:
+            print('Invalid datetime format, dropping')
 
     f = plt.figure()
     f.set_figwidth(20)
@@ -68,9 +73,9 @@ def create_plot(data_table):
     )
     #x_ranger = [datetime.strptime('{}:{}:{}'.format(0, 0, i*5), '%H:%M:%S') for i in range(12)]
 
-    plt.title('Время запроса/время дня')
-
-    plt.savefig("date-request_plot.png")
+    file_name = entry.name[7:21]
+    plt.title('Время запроса/время дня {}'.format(file_name))
+    plt.savefig("date-request_plot_{}.png".format(file_name))
 
 
 with os.scandir('.') as entries:
@@ -80,12 +85,14 @@ with os.scandir('.') as entries:
                 continue
             print('Start processing on ' + entry.name)
             with open(entry, 'r') as r:
+                # filtered = []
                 regexp = re.compile(pattern)
                 data_table = {}
                 for line in read_large_file(r):
                     if regexp.match(line):
                         fill_data_table(line, data_table)
 
-                print(json.dumps(data_table, indent=4))
+                #print(json.dumps(data_table, indent=4))
 
-                create_plot(data_table)
+                create_plot(data_table, entry)
+                print('Finish processing on ' + entry.name)
